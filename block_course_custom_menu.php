@@ -36,8 +36,8 @@ class block_course_custom_menu extends block_base {
     public function applicable_formats() {
         
         return array(
-                    'all'             => true,
-                    'site'            => true,
+                    'all'             => false,
+                    'site'            => false,
                     'course'          => true,
                     'course-category' => true,
                     'mod'             => true,
@@ -61,6 +61,7 @@ class block_course_custom_menu extends block_base {
                                      FROM {course_sections} 
                                      WHERE 
                                      visible = 1 and course = :courseid ' , array('courseid' => $courseid));
+        
         // sections starting from 0, this is why we remove one element
         return $sequence -1;
         
@@ -80,17 +81,18 @@ class block_course_custom_menu extends block_base {
         
     }
     
+    
+    
     public function getCourseSectionNames($courseid, $sectionid)
     {
         global $DB, $CFG;
-        
+        $sequenceArr = array();
         /* get the actual course and section sequence numbers */
         $sequence = $DB->get_field_sql('SELECT sequence
                                      FROM {course_sections} 
                                      WHERE 
                                      visible = 1 and course = :courseid and section = :sectionid' , array('courseid' => $courseid, 'sectionid' => $sectionid));
-        
-        
+
         /* create an array from the string */
         $seqArr = explode(',', $sequence);
         /*  get the formats of the modules -> F.e.: page, forum, quiz */
@@ -112,8 +114,8 @@ class block_course_custom_menu extends block_base {
                                  FROM {'.$moduleName.'} 
                                  WHERE 
                                  id = :instanceid' , array('instanceid' => $instanceID));
-
-                $sequenceArr[] = '<img src="'.$CFG->wwwroot.'/theme/klass/pix/'.$moduleName.'.png" width="45px" height="45px"><a href="'.$CFG->wwwroot.'/mod/'.$moduleName.'/view.php?id='.$seqID.'" id="menu_course_section_value_'.$seqID.'" class="custom_menu_selected_lesson">'.$str.'</a>';
+                //the child menupoint names
+                $sequenceArr[] = '<img src="'.$CFG->wwwroot.'/theme/dariahteach/pix/'.$moduleName.'.png" width="32px" height="32px">&nbsp;&nbsp;<a href="'.$CFG->wwwroot.'/mod/'.$moduleName.'/view.php?id='.$seqID.'" id="menu_course_section_value_'.$seqID.'" class="custom_menu_selected_lesson">'.$str.'</a>';
                 //$sequenceArr[] = '<button type="button" value="'.$moduleName.'/'.$seqID.'" id="menu_course_section_value" class="menu_course_section_value" name="menu_course_section_value">'.$str.'</button>';
                 //modulename - instanceid
             }
@@ -131,11 +133,11 @@ class block_course_custom_menu extends block_base {
     
     function get_content() {
         
-        global $CFG, $OUTPUT, $DB, $PAGE;
-        
+        global $CFG, $OUTPUT, $DB, $PAGE;        
         
         $contextID = $this->page->context->id;
-                
+        $this->content = new stdClass();
+        $this->content->text = false;
         $blockID = $this->instance->id;
         //if the contextid is not system type we need to change it - this needed because only system type will be available in all page
         if($contextID != 1){            
@@ -149,78 +151,42 @@ class block_course_custom_menu extends block_base {
         }
         
         $id = $this->page->course->id;
-        
         $menuSections = $this->getCourseSequences($id);
-                
-        if(empty($menuSections))
-        {
-            $this->content->text = 'Course has no data';
-            return $this->content->text;
+        
+        if((int)$menuSections < 2) {
+            $this->content = '';
+            return $this->content;
         }
-
-        for($i = 0; $i <= $menuSections; $i++){
+        
+        for($i = 1; $i <= $menuSections+1; $i++){
 
             $section = (string)$i;
             $menu_data = $this->getCourseSectionNames($id, $section);
             
-/*
-            if(empty($menu_data))
-            {
-                $this->content->text .= 'Course has no data1';
-                return $this->content->text;
-            }
-  */          
             $sectioName = $this->getSectionName($id, $section);
-            $this->content->text .= '<div class="oeaw_custom_menu_root" id="oeaw_custom_menu_root_'.$id.'-'.$section.'">';
+            if(empty($sectioName) || $section == 0){ $class="hidden";} else {$class="";};
+            if($section == 1){ $active = "active"; }else { $active ="";}
+            //if($section == 0) {$class = "hidden";}
+            $this->content->text .= '<div class="oeaw_custom_menu_root '.$class.' '.$active.' " id="oeaw_custom_menu_root_'.$id.'-'.$section.'">';
             $openid = 'oeaw_cmr_'.$id.'-'.$section;
-            $this->content->text .= "<div class='oeaw_custom_menu_root_header'><center><a id='oeaw_cmr_".$id."-".$section."' href='#'>".$sectioName."</a></center></div>";
+            $this->content->text .= "<div class='oeaw_custom_menu_root_header ".$class."'><a id='oeaw_cmr_".$id."-".$section."' href='".$CFG->wwwroot."/course/view.php?id=".$id."&section=".$section."' >".$sectioName."</a></div>";
             $this->content->text .= '</div>';
             
-            $this->content->text .= '<div class="oeaw_custom_menu_content" id="oeaw_cmc_'.$id.'-'.$section.'">';            
-            foreach ($menu_data as $data){
-                
-                $this->content->text .= '<div  >';            
-                $this->content->text .= '<div class="oeaw_custom_menu_content_row"><p>'.$data.'</p></div>'; 
-                $this->content->text .= '</div>';
-            }
+            $this->content->text .= '<div class="oeaw_custom_menu_content active '.$class.'" id="oeaw_cmc_'.$id.'-'.$section.'">';
+            
+            if(!empty($menu_data)){
+                foreach ($menu_data as $data){                
+                    $this->content->text .= '<div  >';            
+                    $this->content->text .= '<div class="oeaw_custom_menu_content_row"><p>'.$data.'</p></div>'; 
+                    $this->content->text .= '</div>';
+                }
+            }            
        
             $this->content->text .= '</div>';
         }
-
+                          
+        return $this->content;        
         
-        return $this->content;
-        
-        $data = json_decode(json_encode($data), True);
-
-        $this->content->text = '<div style="display: table; width:100%; margin: 5px;" >'; 
-        foreach ($data as $key => $value) {
-                        
-            if($value["datatype"] == "datetime"){
-                
-                $valueF = date('Y-m-d H:i:s', $value["data"]); 
-            } elseif($value["datatype"] == "menu"){
-                
-                $param = $value["data"];                
-                $param1 = explode("\n", $value["param1"]);                
-                $valueF = $param1[$param];
-            }else{
-                $valueF = $value["data"];
-            }
-            $this->content->text .= '<div style="display: table-row;" >';
-            $this->content->text .= '<div style="display: table-cell;"><p>'.$key.' : </p></div>';
-            $this->content->text .= '<div style="display: table-cell;font-weight:bold;"><p>'.$valueF.'</p></div>'; 
-            $this->content->text .= '</div>';
-            
-        }
-        
-        
-        $this->content->text .=' <br> <a href="'.$searchUrl.'">Search</a>';
-        $this->content->text .= '</div>';
-        
-        //return $this->content->text;
-        
-        
-        return $this->content;
     }
 
     
