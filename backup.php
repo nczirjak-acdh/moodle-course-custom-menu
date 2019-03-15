@@ -26,7 +26,7 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-class block_course_custom_menu extends block_base {
+class block_course_custom_menu_backup extends block_base {
 
     function init() {
         $this->title = get_string('pluginname', 'block_course_custom_menu');
@@ -159,24 +159,18 @@ class block_course_custom_menu extends block_base {
                 $lessonToggle = "";
                 $sequenceArr[$seqID] = "<div>";
                 if(strtolower($moduleName) == 'lesson') {
-                    $lessonToggle = '<div class="course-custom-sublesson-header">';
-                        $lessonToggle .= '<a class="accordion-toggle custom_menu_selected_lesson_arrow" id="oeaw-cmlc-'.$seqID.'"> > </a>';
-                        $lessons = $this->getLessonPages($courseid, $seqID);
-                        $sequenceArr[$seqID] .= $lessonToggle.' <img src="'.$CFG->wwwroot.'/theme/dariahteach/pix/'.$moduleName.'.png" width="32px" height="32px">&nbsp;&nbsp;<a href="'.$CFG->wwwroot.'/mod/'.$moduleName.'/view.php?id='.$seqID.'" id="menu_course_section_value_'.$seqID.'" class="custom_menu_selected_lesson">'.$str.'</a>';
-                    $sequenceArr[$seqID] .= '</div>';                       
+                    $lessonToggle = '<a class="accordion-toggle custom_menu_selected_lesson_arrow" id="oeaw-cmlc-'.$seqID.'"> <i class="icon fa fa-caret-right"></i> </a>';
+                    $lessons = $this->getLessonPages($courseid, $seqID);
                     
-                    $sequenceArr[$seqID] .= '<div id="oeaw-cml-content-'.$seqID.'" class="oeaw-cm-lesson-list " >';
-                        $sequenceArr[$seqID] .= '<ul>';
-                        foreach($lessons as $l) {
-                            $sequenceArr[$seqID] .=  "<li><a href='".$CFG->wwwroot."/mod/lesson/view.php?id=".$seqID."&pageid=".$l->page_id."' class='custom_menu_selected_lesson_page' id='ccml-".$seqID."-".$l->page_id."'>".$l->title."</a></li>";
-                        }
-                        $sequenceArr[$seqID] .= '</ul>';                        
+                    $sequenceArr[$seqID] .= $lessonToggle.' <img src="'.$CFG->wwwroot.'/theme/dh/pix/'.$moduleName.'.png" width="32px" height="32px">&nbsp;&nbsp;<a href="'.$CFG->wwwroot.'/mod/'.$moduleName.'/view.php?id='.$seqID.'" id="menu_course_section_value_'.$seqID.'" class="custom_menu_selected_lesson">'.$str.'</a>';
+                    $sequenceArr[$seqID] .= '<div id="oeaw-cml-'.$seqID.'" class="panel-collapse collapse in oeaw-cm-lesson-list " >';
+                    foreach($lessons as $l) {
+                        $sequenceArr[$seqID] .=  "<li><a href='".$CFG->wwwroot."/mod/lesson/view.php?id=".$seqID."&pageid=".$l->page_id."' class='custom_menu_selected_lesson_page' id='ccml-".$seqID."-".$l->page_id."'>".$l->title."</a></li>";
+                    }
                     $sequenceArr[$seqID] .= '</div>';
                     
                 } else {
-                    $lessonToggle = '<div class="course-custom-subcontent-header not-a-lesson" >';
-                        $sequenceArr[$seqID] .= $lessonToggle.' <img src="'.$CFG->wwwroot.'/theme/dariahteach/pix/'.$moduleName.'.png" width="32px" height="32px">&nbsp;&nbsp;<a href="'.$CFG->wwwroot.'/mod/'.$moduleName.'/view.php?id='.$seqID.'" id="menu_course_section_value_'.$seqID.'" class="custom_menu_selected_lesson">'.$str.'</a>';
-                    $sequenceArr[$seqID] .= '</div>';
+                    $sequenceArr[$seqID] .= $lessonToggle.' <img src="'.$CFG->wwwroot.'/theme/dh/pix/'.$moduleName.'.png" width="32px" height="32px">&nbsp;&nbsp;<a href="'.$CFG->wwwroot.'/mod/'.$moduleName.'/view.php?id='.$seqID.'" id="menu_course_section_value_'.$seqID.'" class="custom_menu_selected_lesson">'.$str.'</a>';
                 }
                 $sequenceArr[$seqID] .= "</div>";
             }
@@ -204,20 +198,12 @@ class block_course_custom_menu extends block_base {
         return $result;
     }
     
-    /**
-     * Get the lesson pages for the lesson overview
-     * 
-     * @global type $CFG
-     * @global type $DB
-     * @param type $courseid
-     * @param type $cmid
-     * @return type
-     */
+    
     public function getLessonPages($courseid, $cmid) {
         global $CFG, $DB;
         $result = $DB->get_records_sql(
             'SELECT  
-                lp.id, lp.title, lp.prevpageid, lp.nextpageid, l.id as lesson_id, lp.id as page_id
+                lp.title, lp.prevpageid, lp.nextpageid, l.id as lesson_id, lp.id as page_id
             FROM
                 course_modules as cm
             LEFT JOIN 
@@ -226,55 +212,8 @@ class block_course_custom_menu extends block_base {
                 lesson_pages as lp ON lp.lessonid = l.id
             WHERE 
                 cm.course = ? and cm.id = ?', array($courseid, $courseid, $cmid));
-        //if we have data then we need to reorder the result by the stepper
-        if(count($result) > 0) {
-            $newArr = array();
-            $result = (array)$result;
-            $first = $this->getFirstLessonFromArray($result, "prevpageid", 0);
-            $newArr[0] = $result[$first];
-            unset($result[$first]);
-            $count = count($result);
-            $actualPage = $newArr[0]->nextpageid;
-            $this->reorderLessonPages($result, "page_id", $actualPage, $newArr);  
-            $result = $newArr;
-        }
         return $result;
     }
-    
-    /**
-     * Get the first lesson for the reorder, which will be th e0
-     * 
-     * @param type $arr
-     * @param type $property
-     * @param type $val
-     * @return boolean
-     */
-    private function getFirstLessonFromArray($arr, $property, $val) {
-        foreach($arr as $key => $value) {   
-            if ( $value->$property == $val ) { return $key; }
-        }
-        return false;
-    }
-    /**
-     * 
-     * We need to reorder the lesson pages, first page is 0 and then thr others
-     * are coming based on the nextpageid
-     * 
-     * @param type $arr
-     * @param type $prop
-     * @param type $val
-     * @param type $newArr
-     */
-    function reorderLessonPages($arr, $prop, $val, &$newArr) {
-        foreach($arr as $k => $v) {
-            if($v->$prop == $val) {
-                array_push($newArr, $v);
-                unset($arr[$k]);
-                $this->reorderLessonPages($arr, "page_id", $v->nextpageid, $newArr);
-            }
-        }
-    }
-    
     
     function has_config() {return true;}
     
@@ -347,7 +286,7 @@ class block_course_custom_menu extends block_base {
         $lessons = array();
         $lessonPages = array();
         
-        $this->content->text .= '<div class="course-custom-menu main-unit">';
+        $this->content->text .= '<div class="panel-group" id="accordion2">';
         for($i = 1; $i <= $menuSections+1; $i++){
 
             $section = (string)$i;
@@ -355,20 +294,30 @@ class block_course_custom_menu extends block_base {
             $sectioName = $this->getSectionName($id, $section);
             if(!$sectioName) { break; }
             
-            $this->content->text .= '<div class="block block-main block-ccm-unit">';
-                $this->content->text .= '<div data-target="#oeaw-cmc-'.$id.'-'.$section.'" class="block-ccm-unit-header">';
-                        $this->content->text .= "<a class='ccmc-section' id='ccmc-section-".$id."-".$section."'> > </a>";
+            //if the section is the same then we show the detail view
+            if($section == $sectionid){ $active = "show"; }else { $active ="";}            
+            
+            $this->content->text .= '<div class="panel panel-default">';
+                $this->content->text .= '<div class="panel-heading" data-toggle="collapse" data-parent="#accordion2" data-target="#oeaw-cmc-'.$id.'-'.$section.'">';
+                    $this->content->text .= '<h4 class="panel-title">';
+                        $this->content->text .= "<a class='accordion-toggle ccmc-section' id='ccmc-section-".$id."-".$section."'> <i class='icon fa fa-caret-right'></i> </a>";
                         $this->content->text .= "<a href='".$CFG->wwwroot."/course/view.php?id=".$id."&section=".$section."' class='ccm-section' id='ccm-section-".$id."-".$section."'> ".$sectioName."</a>";
+                    $this->content->text .= '</h4>';    
                 $this->content->text .= '</div>';    
                 
-                $this->content->text .= '<div id="oeaw-cmc-'.$id.'-'.$section.'" class="course-custom-lesson-div">';
+                $this->content->text .= '<div id="oeaw-cmc-'.$id.'-'.$section.'" class="panel-collapse collapse '.$active.'">';
                 
                     if(!empty($menu_data)){
                         foreach ($menu_data as $k => $data){                
-                            $this->content->text .= '<div class="course-custom-sublesson-content" id="oeaw-cml-'.$k.'">';
-                                $this->content->text .= '<div class="oeaw_custom_menu_content_row">'; 
-                                    $this->content->text .= $data;
+                            $this->content->text .= '<div class="panel-body">';
+                                $this->content->text .= '<div class="panel panel-default">';
+                                    $this->content->text .= '<div class="panel-heading" data-toggle="collapse" data-parent="#accordion2" data-target="#oeaw-cml-'.$k.'">';
+                                        $this->content->text .= '<div class="oeaw_custom_menu_content_row">'; 
+                                            $this->content->text .= '<p> '.$data.'</p>';
+                                        $this->content->text .= '</div>';
+                                    $this->content->text .= '</div>';
                                 $this->content->text .= '</div>';
+                                //ide jon
                             $this->content->text .= '</div>';
                         }
                     }    
