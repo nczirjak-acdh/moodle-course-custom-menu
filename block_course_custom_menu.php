@@ -153,7 +153,7 @@ class block_course_custom_menu extends block_base {
                 $v = (array)$v;                
                 $moduleName = $v["name"];
                 $instanceID = $v["instance"]; 
-                
+                if($moduleName == "hvp") { return $sequenceArr; }
                 $str   = $this->getModuleInstanceName($instanceID, $name, $moduleName);
                 //the child menupoint names
                 $lessonToggle = "";
@@ -174,9 +174,11 @@ class block_course_custom_menu extends block_base {
                     $sequenceArr[$seqID] .= '</div>';
                     
                 } else {
-                    $lessonToggle = '<div class="course-custom-subcontent-header not-a-lesson" >';
-                        $sequenceArr[$seqID] .= $lessonToggle.' <img src="'.$CFG->wwwroot.'/theme/dariahteach/pix/'.$moduleName.'.png" width="32px" height="32px">&nbsp;&nbsp;<a href="'.$CFG->wwwroot.'/mod/'.$moduleName.'/view.php?id='.$seqID.'" id="menu_course_section_value_'.$seqID.'" class="custom_menu_selected_lesson">'.$str.'</a>';
-                    $sequenceArr[$seqID] .= '</div>';
+                    if($moduleName != "hvp") {
+                        $lessonToggle = '<div class="course-custom-subcontent-header not-a-lesson" >';                    
+                            $sequenceArr[$seqID] .= $lessonToggle.' <img src="'.$CFG->wwwroot.'/theme/dariahteach/pix/'.$moduleName.'.png" width="32px" height="32px">&nbsp;&nbsp;<a href="'.$CFG->wwwroot.'/mod/'.$moduleName.'/view.php?id='.$seqID.'" id="menu_course_section_value_'.$seqID.'" class="custom_menu_selected_lesson">'.$str.'</a>';
+                        $sequenceArr[$seqID] .= '</div>';
+                    }
                 }
                 $sequenceArr[$seqID] .= "</div>";
             }
@@ -364,12 +366,14 @@ class block_course_custom_menu extends block_base {
                 $this->content->text .= '<div id="oeaw-cmc-'.$id.'-'.$section.'" class="course-custom-lesson-div">';
                 
                     if(!empty($menu_data)){
-                        foreach ($menu_data as $k => $data){                
-                            $this->content->text .= '<div class="course-custom-sublesson-content" id="oeaw-cml-'.$k.'">';
-                                $this->content->text .= '<div class="oeaw_custom_menu_content_row">'; 
-                                    $this->content->text .= $data;
+                        foreach ($menu_data as $k => $data){
+                            //if (strpos($data, '<div></div>') !== false) {
+                                $this->content->text .= '<div class="course-custom-sublesson-content" id="oeaw-cml-'.$k.'">';
+                                    $this->content->text .= '<div class="oeaw_custom_menu_content_row">'; 
+                                        $this->content->text .= $data;
+                                    $this->content->text .= '</div>';
                                 $this->content->text .= '</div>';
-                            $this->content->text .= '</div>';
+                            //}
                         }
                     }    
                     
