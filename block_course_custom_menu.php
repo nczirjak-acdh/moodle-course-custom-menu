@@ -153,7 +153,7 @@ class block_course_custom_menu extends block_base {
                 $v = (array)$v;                
                 $moduleName = $v["name"];
                 $instanceID = $v["instance"]; 
-                if($moduleName == "hvp") { return $sequenceArr; }
+                if($moduleName == "hvp") { continue; }
                 $str   = $this->getModuleInstanceName($instanceID, $name, $moduleName);
                 //the child menupoint names
                 $lessonToggle = "";
@@ -366,6 +366,8 @@ class block_course_custom_menu extends block_base {
                 $this->content->text .= '<div id="oeaw-cmc-'.$id.'-'.$section.'" class="course-custom-lesson-div">';
                 
                     if(!empty($menu_data)){
+                      
+
                         foreach ($menu_data as $k => $data){
                             //if (strpos($data, '<div></div>') !== false) {
                                 $this->content->text .= '<div class="course-custom-sublesson-content" id="oeaw-cml-'.$k.'">';
