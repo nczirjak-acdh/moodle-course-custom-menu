@@ -93,6 +93,28 @@ class block_course_custom_menu extends block_base {
         
     }
     
+    public function getCourseSectionsModules($courseid) {
+        global $DB, $CFG;
+        
+        $res = array();
+        $res = $DB->get_records_sql(
+            '
+            SELECT 
+                cm.id as module_id, cs.id as course_section_id, cs.name as course_section_name,
+                cs.section as course_section, cm.module, m.name as module_name
+            FROM
+                {course_sections} as cs
+            LEFT JOIN 
+                {course_modules} as cm on cm.course = 34 and cm.section = cs.id
+            LEFT JOIN 
+                    {modules} as m on m.id = cm.module
+            WHERE cs.course = ? 
+            and cs.name is not null
+            ORDER BY `course_section` ASC', array($courseid));
+        
+        return $res;
+    }
+    
     public function getCourseMenu($courseid) {
         global $DB, $CFG;
         $res = array();
@@ -311,7 +333,7 @@ class block_course_custom_menu extends block_base {
         $id = $this->page->course->id;
         $menuData = array();
         $menuData = $this->getCourseMenu($id);
-        
+      
         $menu = array();
         
         foreach($menuData as $md) {
@@ -330,14 +352,16 @@ class block_course_custom_menu extends block_base {
                 return $item1['lessonpage_id'] < $item2['lessonpage_id'] ? -1 : 1;
             });
         }
-       
+        
         $courseSequence = $this->getCourseSequences($id);
         foreach($courseSequence as $cs){
             $cs->course;
             $cs->sequence;
         }
+                
 
         $menuSections = $this->countCourseSequences($id);
+       
         if(empty($menuSections)) {
             $this->content->text = 'Course has no data';
             return $this->content->text;
@@ -351,11 +375,13 @@ class block_course_custom_menu extends block_base {
         
         $this->content->text .= '<div class="course-custom-menu main-unit">';
         for($i = 1; $i <= $menuSections+1; $i++){
-
+       
             $section = (string)$i;
             $menu_data = $this->getCourseSectionNames($id, $section);
             $sectioName = $this->getSectionName($id, $section);
-            if(!$sectioName) { break; }
+            if(!$sectioName) { continue; }
+            
+            
             
             $this->content->text .= '<div class="block block-main block-ccm-unit">';
                 $this->content->text .= '<div data-target="#oeaw-cmc-'.$id.'-'.$section.'" class="block-ccm-unit-header">';
@@ -366,8 +392,6 @@ class block_course_custom_menu extends block_base {
                 $this->content->text .= '<div id="oeaw-cmc-'.$id.'-'.$section.'" class="course-custom-lesson-div">';
                 
                     if(!empty($menu_data)){
-                      
-
                         foreach ($menu_data as $k => $data){
                             //if (strpos($data, '<div></div>') !== false) {
                                 $this->content->text .= '<div class="course-custom-sublesson-content" id="oeaw-cml-'.$k.'">';
