@@ -18,8 +18,9 @@
     color: white !important;
 } 
 */
+
 .oeaw-cm-lesson-list {
-    margin-left: 30px;
+    margin-left: 45px;
 }
 .course-custom-menu .main-unit {
     color: black !important;
@@ -27,10 +28,10 @@
 
 .block_course_custom_menu {
     margin-right: 15px;
+    max-width: 335px;
 }
-.block_course_custom_menu .header {
-    display: none;
-}
+
+
 .course-custom-lesson-div {
     display: none;
 }
@@ -47,6 +48,10 @@
 
 /**  OLD SITE START**/
 /*the unit box*/
+/*
+.block_course_custom_menu .header {
+    display: none;
+}
 .block-ccm-unit {
     background-color: white;
     border: 1px solid #016771;
@@ -86,12 +91,87 @@
 .oeaw_custom_menu_content_row {
     padding: 10px;
 }
-
+*/
 /**  OLD SITE  END **/
 
 
+
+
 /**  NEW SITE START**/
+.block_course_custom_menu .block-ccm-unit {    
+    border: 1px solid #d5d5d5;
+    padding-bottom: 0px !important;
+    margin-bottom: 20px;
+}
+.block-ccm-unit-header-selected {
+    background-color: #016771 !important;
+    color: white !important;
+    padding: 15px;
+    font-size: 17px;
+    font-weight: bold;
+}
+.block-ccm-unit-header-selected a {
+     color: white !important;
+}
+.block-ccm-unit-header {
+    background-color:  rgba(234,240,241,1);
+    color: #016771;
+    padding: 15px;
+    font-size: 17px;
+    font-weight: bold;
+}
+.block-ccm-unit-header a {
+    color: #016771;
+}
+.ccm-section {
+    color: #016771 !important;
+}
+.course-custom-lesson-div {
+    background-color: rgba(240,240,240,1);
+    color: #016771 !important;
+    border: 1px solid #016771;
+    padding: 10px;
+}
+.custom_menu_selected_lesson_arrow {
+    color: #016771 !important;
+}
+.custom_menu_selected_lesson {
+    color: #016771 !important;
+}
+.custom_menu_selected_lesson_page {
+    color: #016771 !important;
+}
+.oeaw-cm-lesson-list ul li {
+    color: #016771 !important;
+}
+.course-custom-subcontent-header.not-a-lesson {
+    padding-left: 15px !important;
+}
+.oeaw_custom_menu_content_row {
+    padding: 10px;
+}
+.block-region .block .card-body .card-title{
+  /*display: none !important;*/
+}
 
+.block_course_custom_menu .header {
+    /*display: none;*/
+}
+@media (min-width: 600px) and (max-width: 799px) {
+    .block_course_custom_menu {
+        width: 180px !important;
+    }
+}
+@media (min-width: 1200px) and (max-width: 1400px) {
+    .block_course_custom_menu {
+        width: 280px !important;
+    }
+}
 
+@media (min-width: 800px) and (max-width: 1200px) {
+    .block_course_custom_menu {
+        width: 240px !important;
+    }
+}
 
 /**  NEW SITE  END **/

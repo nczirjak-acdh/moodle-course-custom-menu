@@ -7,6 +7,8 @@
             id = id.replace("ccm-section-", 'oeaw-cmc-');
             $('#'+id).show("slow");
             //the lesson content
+            $('[data-target="#'+id+'"]').addClass('block-ccm-unit-header-selected');
+            
             
             if(readCookie("ccm-lesson")) {
                 $('#'+readCookie("ccm-lesson")).addClass('bold');
@@ -35,17 +37,27 @@
        
         //main unit arrow
         $('.ccmc-section').click(function(){
+            var id = $(this).attr("id");
+            var compareid = id.replace("ccmc-section-", "ccm-section-");
+            id = id.replace("ccmc-section-", "oeaw-cmc-");
             
             if(readCookie("ccm-section")) {
-                $('#'+readCookie("ccm-section")).hide();               
+                if(readCookie("ccm-section") != id) {
+                    $('#'+readCookie("ccm-section")).removeClass('block-ccm-unit-header-selected').addClass('block-ccm-unit-header');
+                    $('#'+readCookie("ccm-section")).hide();
+                    $('#'+id).removeClass('block-ccm-unit-header').addClass('block-ccm-unit-header-selected');
+                }
                 eraseCookie("ccm-section"); 
                 eraseCookie("ccm-lesson");
                 eraseCookie("ccm-lesson-content");
                 eraseCookie("ccmc-lesson-page");
             }
-            var id = $(this).attr("id");
-            id = id.replace("ccmc-section-", "oeaw-cmc-");
             createCookie("ccm-section", id, 10);
+            //remove the older classes
+             if(id != compareid) {
+                $( "div" ).find( ".block-ccm-unit-header-selected").removeClass('block-ccm-unit-header-selected').addClass('block-ccm-unit-header');
+            }
+            $('[data-target="#'+id+'"]').addClass('block-ccm-unit-header-selected');
             $('#'+id).show("slow");
        });
 
