@@ -35,24 +35,28 @@ class block_course_custom_menu extends block_base {
     public function applicable_formats() {
         
         return array(
-                    'all'             => true,
+                     'all'             => true,
                     'site'            => true,
                     'course'          => true,
                     'course-category' => true,
                     'mod'             => true,
                     'my'              => false,
                     'tag'             => false,
-                    'admin'           => false,           
+                    'admin'           => false,          
             );
+    }
+    
+    public function instance_allow_multiple() {
+          return true;
     }
 
     public function getCourseSequences($courseid) {
         global $DB;
         /* get the actual course and section sequence numbers */
-        $sequence = $DB->get_records_sql('SELECT id, course, sequence
+        $sequence = $DB->get_records_sql('SELECT id, course, sequence, section
                                      FROM {course_sections} 
                                      WHERE 
-                                     visible = 1 and course = :courseid ' , array('courseid' => $courseid));
+                                     visible = 1 and course = :courseid order by section asc' , array('courseid' => $courseid));
         
         
         // sections starting from 0, this is why we remove one element
@@ -70,7 +74,6 @@ class block_course_custom_menu extends block_base {
                                      WHERE 
                                      visible = 1 and course = :courseid ' , array('courseid' => $courseid));
         
-        
         // sections starting from 0, this is why we remove one element
         return $sequence -1;
         
@@ -86,7 +89,6 @@ class block_course_custom_menu extends block_base {
                                      FROM {course_sections} 
                                      WHERE 
                                      visible = 1 and course = :courseid and section = :sectionid' , array('courseid' => $courseid, 'sectionid' => $sectionid));
-        
         return $name;
         
     }
@@ -135,7 +137,7 @@ class block_course_custom_menu extends block_base {
         
         /* get the actual course and section sequence numbers */
         $sequence = $this->getCourseSectionSequence($courseid, $sectionid);
-
+        
         /* create an array from the string */
         $seqArr = explode(',', $sequence);
         /*  get the formats of the modules -> F.e.: page, forum, quiz */
@@ -158,9 +160,11 @@ class block_course_custom_menu extends block_base {
                 $sequenceArr[$seqID] = "<div>";
                 if(strtolower($moduleName) == 'lesson') {
                     $lessonToggle = '<div class="course-custom-sublesson-header">';
-                        $lessonToggle .= '<a class="accordion-toggle custom_menu_selected_lesson_arrow" id="oeaw-cmlc-'.$seqID.'"> <img src="'.$CFG->wwwroot.'/theme/dh/pix/caret-right.svg" width="16px" height="16px"> </a>';
+                        $lessonToggle .= '<a class="accordion-toggle custom_menu_selected_lesson_arrow" id="oeaw-cmlc-'.$seqID.'"> <img src="'.$CFG->wwwroot.'/theme/lambda/pix/caret-right.svg" width="20px" height="20px"> </a>';
                         $lessons = $this->getLessonPages($courseid, $seqID);
-                        $sequenceArr[$seqID] .= $lessonToggle.' <img src="'.$CFG->wwwroot.'/theme/dh/pix_plugins/mod/'.$moduleName.'/icon.svg" width="16px" height="16px">&nbsp;&nbsp;<a href="'.$CFG->wwwroot.'/mod/'.$moduleName.'/view.php?id='.$seqID.'" id="menu_course_section_value_'.$seqID.'" class="custom_menu_selected_lesson">'.$str.'</a>';
+                        $sequenceArr[$seqID] .= $lessonToggle.' '
+                                . '<img src="'.$CFG->wwwroot.'/theme/lambda/pix_plugins/mod/'.$moduleName.'/icon.svg" width="20px" height="20px">&nbsp;&nbsp;'
+                                . '<a href="'.$CFG->wwwroot.'/mod/'.$moduleName.'/view.php?id='.$seqID.'" id="menu_course_section_value_'.$seqID.'" class="custom_menu_selected_lesson">'.$str.'</a>';
                     $sequenceArr[$seqID] .= '</div>';                       
                     
                     $sequenceArr[$seqID] .= '<div id="oeaw-cml-content-'.$seqID.'" class="oeaw-cm-lesson-list " >';
@@ -174,7 +178,9 @@ class block_course_custom_menu extends block_base {
                 } else {
                     if($moduleName != "hvp") {
                         $lessonToggle = '<div class="course-custom-subcontent-header not-a-lesson" >';                    
-                            $sequenceArr[$seqID] .= $lessonToggle.' <img src="'.$CFG->wwwroot.'/theme/dh/pix_plugins/mod/'.$moduleName.'/icon.svg" width="16px" height="16px">&nbsp;&nbsp;<a href="'.$CFG->wwwroot.'/mod/'.$moduleName.'/view.php?id='.$seqID.'" id="menu_course_section_value_'.$seqID.'" class="custom_menu_selected_lesson">'.$str.'</a>';
+                            $sequenceArr[$seqID] .= $lessonToggle.' '
+                                    . '<img src="'.$CFG->wwwroot.'/theme/lambda/pix_plugins/mod/'.$moduleName.'/icon.svg" width="20px" height="20px">&nbsp;&nbsp;'
+                                    . '<a href="'.$CFG->wwwroot.'/mod/'.$moduleName.'/view.php?id='.$seqID.'" id="menu_course_section_value_'.$seqID.'" class="custom_menu_selected_lesson">'.$str.'</a>';
                         $sequenceArr[$seqID] .= '</div>';
                     }
                 }
@@ -329,28 +335,25 @@ class block_course_custom_menu extends block_base {
             });
         }
        
-        $courseSequence = $this->getCourseSequences($id);
-        foreach($courseSequence as $cs){
-            $cs->course;
-            $cs->sequence;
-        }
-
         $menuSections = $this->countCourseSequences($id);
         if(empty($menuSections)) {
             $this->content->text = 'Course has no data';
             return $this->content->text;
         }
         
+        $courseSequence = $this->getCourseSequences($id);
+                
         $course_modules = $DB->get_records('course_modules', array('course' => $id));
          
         //$course_modules = $course_modules[$cm_id];
         $lessons = array();
         $lessonPages = array();
         
+        
         $this->content->text .= '<div class="course-custom-menu main-unit">';
-        for($i = 1; $i <= $menuSections+1; $i++){
+        foreach($courseSequence as $v) {
 
-            $section = (string)$i;
+            $section = (string)$v->section;
             $menu_data = $this->getCourseSectionNames($id, $section);
             $sectioName = $this->getSectionName($id, $section);
             if(!$sectioName) { break; }
@@ -358,7 +361,7 @@ class block_course_custom_menu extends block_base {
             $this->content->text .= '<div class="block block-main block-ccm-unit">';
                 $this->content->text .= '<div data-target="#oeaw-cmc-'.$id.'-'.$section.'" class="block-ccm-unit-header">';
                         $this->content->text .= "<a class='ccmc-section' id='ccmc-section-".$id."-".$section."'> ";
-                         $this->content->text .= '<img src="'.$CFG->wwwroot.'/theme/dh/pix/caret-right.svg" width="16px" height="16px">';
+                         $this->content->text .= '<img src="'.$CFG->wwwroot.'/theme/lambda/pix/caret-right.svg" width="20px" height="20px">';
                         $this->content->text .= "</a>";
                         $this->content->text .= "<a href='".$CFG->wwwroot."/course/view.php?id=".$id."&section=".$section."' class='ccm-section' id='ccm-section-".$id."-".$section."'> ".$sectioName."</a>";
                 $this->content->text .= '</div>';    
