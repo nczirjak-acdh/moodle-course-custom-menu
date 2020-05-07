@@ -26,13 +26,16 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-class block_course_custom_menu extends block_base {
+class block_course_custom_menu extends block_base 
+{
 
-    function init() {
+    function init() 
+    {
         $this->title = get_string('pluginname', 'block_course_custom_menu');
     }
    
-    public function applicable_formats() {
+    public function applicable_formats() 
+    {
         
         return array(
                      'all'             => true,
@@ -46,11 +49,19 @@ class block_course_custom_menu extends block_base {
             );
     }
     
-    public function instance_allow_multiple() {
+    public function instance_allow_multiple() 
+    {
           return true;
     }
 
-    public function getCourseSequences($courseid) {
+    /**
+     * Get the course sequences
+     * @global type $DB
+     * @param type $courseid
+     * @return type
+     */
+    public function getCourseSequences($courseid) 
+    {
         global $DB;
         /* get the actual course and section sequence numbers */
         $sequence = $DB->get_records_sql('SELECT id, course, sequence, section
@@ -63,11 +74,16 @@ class block_course_custom_menu extends block_base {
         return $sequence;
     }
     
+    /**
+     * Count the course sequences
+     * 
+     * @global type $DB
+     * @param type $courseid
+     * @return type
+     */
     public function countCourseSequences($courseid)
     {
-        
         global $DB;
-        
         /* get the actual course and section sequence numbers */
         $sequence = $DB->get_field_sql('SELECT count(sequence)
                                      FROM {course_sections} 
@@ -79,11 +95,17 @@ class block_course_custom_menu extends block_base {
         
     }
     
-    
-    public function getSectionName($courseid, $sectionid){
-        
+    /**
+     * Get the section names
+     * 
+     * @global type $DB
+     * @param type $courseid
+     * @param type $sectionid
+     * @return type
+     */
+    public function getSectionName($courseid, $sectionid)
+    {   
         global $DB;
-        
         /* get the actual course and section sequence numbers */
         $name = $DB->get_field_sql('SELECT name
                                      FROM {course_sections} 
@@ -93,7 +115,16 @@ class block_course_custom_menu extends block_base {
         
     }
     
-    public function getCourseMenu($courseid) {
+    /**
+     * Get the course contents for the menu
+     * 
+     * @global type $DB
+     * @global type $CFG
+     * @param type $courseid
+     * @return type
+     */
+    public function getCourseMenu($courseid) 
+    {
         global $DB, $CFG;
         $res = array();
         $res = $DB->get_records_sql(
@@ -121,6 +152,15 @@ class block_course_custom_menu extends block_base {
         return $res;
     }
     
+    /**
+     * Get the Section sequence
+     * 
+     * @global type $DB
+     * @global type $CFG
+     * @param type $courseid
+     * @param type $sectionid
+     * @return type
+     */
     public function getCourseSectionSequence($courseid, $sectionid) {
         global $DB, $CFG;
         $result = array();
@@ -131,6 +171,19 @@ class block_course_custom_menu extends block_base {
         return $result;
     }
     
+    /**
+     * Getthe Section names for the menu
+     * 
+     * @global type $CFG
+     * @global type $OUTPUT
+     * @global type $DB
+     * @global type $PAGE
+     * @global type $LESSON
+     * @global type $USER
+     * @param type $courseid
+     * @param type $sectionid
+     * @return string
+     */
     public function getCourseSectionNames($courseid, $sectionid) {
         global $CFG, $OUTPUT, $DB, $PAGE, $LESSON, $USER;
         $sequenceArr = array();
@@ -203,7 +256,16 @@ class block_course_custom_menu extends block_base {
         return $sequenceArr;                
     }
     
-    private function is_user_with_role($courseid, $rolename, $userid = 0) {
+    /**
+     * Check the user role to hide some content
+     * 
+     * @param type $courseid
+     * @param type $rolename
+     * @param type $userid
+     * @return boolean
+     */
+    private function is_user_with_role($courseid, $rolename, $userid = 0) 
+    {
         $result = false;
         $roles = get_user_roles(context_course::instance($courseid), $userid, false);
         foreach ($roles as $role) {
@@ -215,14 +277,34 @@ class block_course_custom_menu extends block_base {
         return $result;
     }
     
-    public function getModuleName($moduleid) {
+    /**
+     * Get the module name
+     * 
+     * @global type $DB
+     * @global type $CFG
+     * @param type $moduleid
+     * @return type
+     */
+    public function getModuleName($moduleid) 
+    {
         global $DB, $CFG;
         $result = array();
         $result = $DB->get_records_sql('Select m.name, cm.instance FROM course_modules as cm LEFT JOIN modules as m ON m.id = cm.module WHERE cm.visible = 1 and cm.id = :moduleid', array('moduleid' => $moduleid));            
         return $result;
     }
     
-    public function getModuleInstanceName($instanceID, $name, $moduleName) {
+    /**
+     * get the module instance
+     * 
+     * @global type $DB
+     * @global type $CFG
+     * @param type $instanceID
+     * @param type $name
+     * @param type $moduleName
+     * @return type
+     */
+    public function getModuleInstanceName($instanceID, $name, $moduleName) 
+    {
         global $DB, $CFG;
         
         $result = array();
@@ -243,7 +325,8 @@ class block_course_custom_menu extends block_base {
      * @param type $cmid
      * @return type
      */
-    public function getLessonPages($courseid, $cmid) {
+    public function getLessonPages($courseid, $cmid) 
+    {
         global $CFG, $DB;
         $result = $DB->get_records_sql(
             'SELECT  
@@ -279,7 +362,8 @@ class block_course_custom_menu extends block_base {
      * @param type $val
      * @return boolean
      */
-    private function getFirstLessonFromArray($arr, $property, $val) {
+    private function getFirstLessonFromArray($arr, $property, $val) 
+    {
         foreach($arr as $key => $value) {   
             if ( $value->$property == $val ) { return $key; }
         }
@@ -295,7 +379,8 @@ class block_course_custom_menu extends block_base {
      * @param type $val
      * @param type $newArr
      */
-    function reorderLessonPages($arr, $prop, $val, &$newArr) {
+    function reorderLessonPages($arr, $prop, $val, &$newArr) 
+    {
         foreach($arr as $k => $v) {
             if($v->$prop == $val) {
                 array_push($newArr, $v);
@@ -308,7 +393,17 @@ class block_course_custom_menu extends block_base {
     
     function has_config() {return true;}
     
-    function get_content() {
+    /**
+     * The plugin main function
+     * 
+     * @global type $CFG
+     * @global type $OUTPUT
+     * @global type $DB
+     * @global type $PAGE
+     * @return type
+     */
+    function get_content() 
+    {
         
         global $CFG, $OUTPUT, $DB, $PAGE;
         
@@ -403,10 +498,6 @@ class block_course_custom_menu extends block_base {
             $this->content->text .= '</div>';
         }        
         $this->content->text .= '</div>';
-                          
         return $this->content;        
-        
     }
-
-    
 }
