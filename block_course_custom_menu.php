@@ -153,42 +153,66 @@ class block_course_custom_menu extends block_base {
                 $v = (array)$v;                
                 $moduleName = $v["name"];
                 $instanceID = $v["instance"]; 
-                if($moduleName == "hvp") { continue; }
+                //if($moduleName == "hvp") { echo $str   = $this->getModuleInstanceName($instanceID, $name, $moduleName); continue; }
                 $str   = $this->getModuleInstanceName($instanceID, $name, $moduleName);
                 //the child menupoint names
                 $lessonToggle = "";
-                $sequenceArr[$seqID] = "<div>";
+                
                 if(strtolower($moduleName) == 'lesson') {
-                    $lessonToggle = '<div class="course-custom-sublesson-header">';
-                        $lessonToggle .= '<a class="accordion-toggle custom_menu_selected_lesson_arrow" id="oeaw-cmlc-'.$seqID.'"> <img src="'.$CFG->wwwroot.'/theme/lambda/pix/caret-right.svg" width="20px" height="20px"> </a>';
-                        $lessons = $this->getLessonPages($courseid, $seqID);
-                        $sequenceArr[$seqID] .= $lessonToggle.' '
-                                . '<img src="'.$CFG->wwwroot.'/theme/lambda/pix_plugins/mod/'.$moduleName.'/icon.svg" width="20px" height="20px">&nbsp;&nbsp;'
-                                . '<a href="'.$CFG->wwwroot.'/mod/'.$moduleName.'/view.php?id='.$seqID.'" id="menu_course_section_value_'.$seqID.'" class="custom_menu_selected_lesson">'.$str.'</a>';
-                    $sequenceArr[$seqID] .= '</div>';                       
-                    
-                    $sequenceArr[$seqID] .= '<div id="oeaw-cml-content-'.$seqID.'" class="oeaw-cm-lesson-list " >';
-                        $sequenceArr[$seqID] .= '<ul>';
-                        foreach($lessons as $l) {
-                            $sequenceArr[$seqID] .=  "<li><a href='".$CFG->wwwroot."/mod/lesson/view.php?id=".$seqID."&pageid=".$l->page_id."' class='custom_menu_selected_lesson_page' id='ccml-".$seqID."-".$l->page_id."'>".$l->title."</a></li>";
-                        }
-                        $sequenceArr[$seqID] .= '</ul>';                        
-                    $sequenceArr[$seqID] .= '</div>';
-                    
-                } else {
-                    if($moduleName != "hvp") {
-                        $lessonToggle = '<div class="course-custom-subcontent-header not-a-lesson" >';                    
+                    $sequenceArr[$seqID] = "<div>";
+                        $lessonToggle = '<div class="course-custom-sublesson-header">';
+                            $lessonToggle .= '<a class="accordion-toggle custom_menu_selected_lesson_arrow" id="oeaw-cmlc-'.$seqID.'"> <img src="'.$CFG->wwwroot.'/theme/lambda/pix/caret-right.svg" width="20px" height="20px"> </a>';
+                            $lessons = $this->getLessonPages($courseid, $seqID);
                             $sequenceArr[$seqID] .= $lessonToggle.' '
                                     . '<img src="'.$CFG->wwwroot.'/theme/lambda/pix_plugins/mod/'.$moduleName.'/icon.svg" width="20px" height="20px">&nbsp;&nbsp;'
                                     . '<a href="'.$CFG->wwwroot.'/mod/'.$moduleName.'/view.php?id='.$seqID.'" id="menu_course_section_value_'.$seqID.'" class="custom_menu_selected_lesson">'.$str.'</a>';
+                        $sequenceArr[$seqID] .= '</div>';                       
+
+                        $sequenceArr[$seqID] .= '<div id="oeaw-cml-content-'.$seqID.'" class="oeaw-cm-lesson-list " >';
+                            $sequenceArr[$seqID] .= '<ul>';
+                            foreach($lessons as $l) {
+                                $sequenceArr[$seqID] .=  "<li><a href='".$CFG->wwwroot."/mod/lesson/view.php?id=".$seqID."&pageid=".$l->page_id."' class='custom_menu_selected_lesson_page' id='ccml-".$seqID."-".$l->page_id."'>".$l->title."</a></li>";
+                            }
+                            $sequenceArr[$seqID] .= '</ul>';                        
                         $sequenceArr[$seqID] .= '</div>';
+                    $sequenceArr[$seqID] .= "</div>";
+                    
+                } else {
+                    if($moduleName != "hvp") {
+                        $sequenceArr[$seqID] = "<div>";
+                            $lessonToggle = '<div class="course-custom-subcontent-header not-a-lesson" >';                    
+                                $sequenceArr[$seqID] .= $lessonToggle.' '
+                                        . '<img src="'.$CFG->wwwroot.'/theme/lambda/pix_plugins/mod/'.$moduleName.'/icon.svg" width="20px" height="20px">&nbsp;&nbsp;'
+                                        . '<a href="'.$CFG->wwwroot.'/mod/'.$moduleName.'/view.php?id='.$seqID.'" id="menu_course_section_value_'.$seqID.'" class="custom_menu_selected_lesson">'.$str.'</a>';
+                            $sequenceArr[$seqID] .= '</div>';
+                        $sequenceArr[$seqID] .= "</div>";
+                    }elseif ($this->is_user_with_role($courseid, 'student') === false) {
+                        $sequenceArr[$seqID] = "<div>";
+                            $lessonToggle = '<div class="course-custom-subcontent-header not-a-lesson" >';                    
+                                $sequenceArr[$seqID] .= $lessonToggle.' '
+                                        . '<img src="'.$CFG->wwwroot.'/theme/lambda/pix_plugins/mod/'.$moduleName.'/icon.svg" width="20px" height="20px">&nbsp;&nbsp;'
+                                        . '<a href="'.$CFG->wwwroot.'/mod/'.$moduleName.'/view.php?id='.$seqID.'" id="menu_course_section_value_'.$seqID.'" class="custom_menu_selected_lesson">'.$str.'</a>';
+                            $sequenceArr[$seqID] .= '</div>';
+                        $sequenceArr[$seqID] .= "</div>";
                     }
                 }
-                $sequenceArr[$seqID] .= "</div>";
+                
             }
         }
         
         return $sequenceArr;                
+    }
+    
+    private function is_user_with_role($courseid, $rolename, $userid = 0) {
+        $result = false;
+        $roles = get_user_roles(context_course::instance($courseid), $userid, false);
+        foreach ($roles as $role) {
+            if ($role->shortname == $rolename) {
+                $result = true;
+                break;
+            }
+        }
+        return $result;
     }
     
     public function getModuleName($moduleid) {
@@ -295,8 +319,6 @@ class block_course_custom_menu extends block_base {
         $pageid = optional_param('pageid', 0, PARAM_INT);
         $sectionid = optional_param('section', 0, PARAM_INT);
         
-        
-        //$this->page->require->requiresjs('/blocks/course_custom_menu/lib.js');
         $contextID = $this->page->context->id;
         $this->content = new stdClass();
         $this->content->text = false;
@@ -369,19 +391,14 @@ class block_course_custom_menu extends block_base {
                 $this->content->text .= '<div id="oeaw-cmc-'.$id.'-'.$section.'" class="course-custom-lesson-div">';
                 
                     if(!empty($menu_data)){
-                      
-
                         foreach ($menu_data as $k => $data){
-                            //if (strpos($data, '<div></div>') !== false) {
-                                $this->content->text .= '<div class="course-custom-sublesson-content" id="oeaw-cml-'.$k.'">';
-                                    $this->content->text .= '<div class="oeaw_custom_menu_content_row">'; 
-                                        $this->content->text .= $data;
-                                    $this->content->text .= '</div>';
+                            $this->content->text .= '<div class="course-custom-sublesson-content" id="oeaw-cml-'.$k.'">';
+                                $this->content->text .= '<div class="oeaw_custom_menu_content_row">'; 
+                                    $this->content->text .= $data;
                                 $this->content->text .= '</div>';
-                            //}
+                            $this->content->text .= '</div>';
                         }
-                    }    
-                    
+                    }
                 $this->content->text .= '</div>';
             $this->content->text .= '</div>';
         }        

@@ -26,6 +26,13 @@
             if(window.location.href.indexOf("/course/") > -1) {
                 if(typeof id === 'undefined') {
                     return;
+                }else if(typeof pageid === 'undefined' && typeof section === 'undefined' && typeof viewid === 'undefined'){
+                    //open the first section
+                    let areaid = '#oeaw-cmc-'+id+'-1';
+                    $(areaid).show();
+                    $("div").find('[data-target="'+areaid+'"]').removeClass('block-ccm-unit-header');
+                    $("div").find('[data-target="'+areaid+'"]').addClass('block-ccm-unit-header-selected');
+                    eraseCookie("ccm-section");
                 }
             }else if (window.location.href.indexOf("/mod/") > -1) {
                 
